@@ -3,6 +3,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"image"
 	"image/color"
@@ -10,7 +11,6 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"os"
-	"strconv"
 
 	"github.com/nfnt/resize"
 )
@@ -60,22 +60,24 @@ func convertImage(im image.Image) string {
 	return buf.String()
 }
 
+
+
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "Usage: asciipic fname width")
+	var flgReversed = flag.Bool("wob", false, "reverse video for white-on-black terminals")
+	var flgWidth    = flag.Uint("w", 72, "desired width of output")
+	flag.Parse()
+	if flag.NArg() != 1 {
+		flag.Usage()
 		return
 	}
-
-	fname := os.Args[1]
-	var wid uint = 72
-	if len(os.Args) > 2 {
-		widat, _ := strconv.Atoi(os.Args[2])
-		if widat > 0 {
-			wid = uint(widat)
+	if *flgReversed {
+		var rev = make([]byte,len(allchars))
+		for i := 0 ; i < len(rev) ; i++ {
+			rev[i] = allchars[len(rev)-i-1]
 		}
-	}
-
-	img, err := loadImg(fname, wid)
+		allchars = string(rev)
+ 	}
+	img, err := loadImg(flag.Arg(0), *flgWidth)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		return
