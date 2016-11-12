@@ -65,7 +65,7 @@ func convertImage(im image.Image) string {
 func main() {
 	var flgReversed = flag.Bool("wob", false, "reverse video for white-on-black terminals")
 	var flgWidth    = flag.Uint("w", 72, "desired width of output")
-	var flgAspect   = flag.Float64("ar", 1.5, "aspect ratio of text (w/h)")
+	var flgAspect   = flag.Float64("ar", 2.0, "aspect ratio of text (w/h)")
 	flag.Parse()
 	if flag.NArg() != 1 {
 		flag.Usage()
