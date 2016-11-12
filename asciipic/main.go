@@ -16,7 +16,7 @@ import (
 )
 
 // loads the image from fname, and resizes it proportionally to the given width
-func loadImg(fname string, width uint) (image.Image, error) {
+func loadImg(fname string, width uint, ar float64) (image.Image, error) {
 	rdr, err := os.Open(fname)
 	if err != nil {
 		return nil, err
@@ -28,8 +28,8 @@ func loadImg(fname string, width uint) (image.Image, error) {
 		return nil, err
 	}
 
-	ratio := float64(orig.Bounds().Dx()) / float64(orig.Bounds().Dy())
-	return resize.Resize(width, uint(float64(width)/ratio), orig, resize.Bicubic), nil
+	height :=  uint((float64(width) / ar / float64(orig.Bounds().Dx())) * float64(orig.Bounds().Dy()))
+	return resize.Resize(width, height, orig, resize.Bicubic), nil
 }
 
 // determine the brightness of a color, in the range 0 .. 65536
@@ -65,6 +65,7 @@ func convertImage(im image.Image) string {
 func main() {
 	var flgReversed = flag.Bool("wob", false, "reverse video for white-on-black terminals")
 	var flgWidth    = flag.Uint("w", 72, "desired width of output")
+	var flgAspect   = flag.Float64("ar", 1.5, "aspect ratio of text (w/h)")
 	flag.Parse()
 	if flag.NArg() != 1 {
 		flag.Usage()
@@ -77,7 +78,7 @@ func main() {
 		}
 		allchars = string(rev)
  	}
-	img, err := loadImg(flag.Arg(0), *flgWidth)
+	img, err := loadImg(flag.Arg(0), *flgWidth, *flgAspect)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		return
