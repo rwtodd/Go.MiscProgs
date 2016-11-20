@@ -95,11 +95,6 @@ func readIPS(ips *bufio.Reader, out chan Patcher) {
 	var buf []byte
 	for {
 		offs := read3()
-		if offs == EOF_BYTES {
-			out <- EOFMarker{}
-			return
-		}
-
 		plen := read2()
 		switch plen {
 		case 0:
@@ -111,13 +106,53 @@ func readIPS(ips *bufio.Reader, out chan Patcher) {
 			_, err = io.ReadFull(ips, buf)
 		}
 		if err != nil {
-			fmt.Fprintf(os.Stderr,
-				"Error reading ips file: %v\n",
-				err)
+			if (offs == EOF_BYTES) && (err == io.EOF) {
+				out <- EOFMarker{}
+			} else {
+				fmt.Fprintf(os.Stderr,
+					"Error reading ips file: %v\n",
+					err)
+			}
 			return
 		}
 		out <- &BytePatch{buf, int64(offs)}
 	}
+}
+
+func process(ipsf, srcf, tgtf string) error {
+	// copy the source to the new name
+	if err := copyFileContents(srcf, tgtf); err != nil {
+		return fmt.Errorf("File copy: %v\n", err)
+	}
+
+	// open the IPS file and start the reader
+	pchan := make(chan Patcher, 100)
+	infile, err := os.Open(os.Args[1])
+	if err != nil {
+		return fmt.Errorf("Opening IPS file: %v\n", err)
+	}
+	defer infile.Close()
+	br := bufio.NewReader(infile)
+	go readIPS(br, pchan)
+
+	// open the target for patching
+	outfile, err := os.OpenFile(os.Args[3], os.O_WRONLY, 0666)
+	if err != nil {
+		return fmt.Errorf("Opening output file: %v\n", err)
+	}
+	defer outfile.Close()
+
+	// drain the channel, applying patches
+	idx := 0
+	for p := range pchan {
+		idx++
+		fmt.Printf("%d: %v\n", idx, p)
+		if err := p.patch(outfile); err != nil {
+			return fmt.Errorf("Applying patches: %v\n", err)
+		}
+	}
+
+	return nil
 }
 
 func main() {
@@ -129,37 +164,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	// copy the source to the new name
-	if err := copyFileContents(os.Args[2], os.Args[3]); err != nil {
-		fmt.Fprintf(os.Stderr, "File copy: %v\n", err)
+	if err := process(os.Args[1], os.Args[2], os.Args[3]); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
-	}
-
-	// open the IPS file and start the reader
-	pchan := make(chan Patcher, 100)
-	infile, err := os.Open(os.Args[1])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Opening IPS file: %v\n", err)
-		os.Exit(1)
-	}
-	br := bufio.NewReader(infile)
-	go readIPS(br, pchan)
-
-	// open the target for patching
-	outfile, err := os.OpenFile(os.Args[3], os.O_WRONLY, 0666)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Opening output file: %v\n", err)
-		os.Exit(1)
-	}
-
-	// drain the channel, applying patches
-	idx := 0
-	for p := range pchan {
-		idx++
-		fmt.Printf("%d: %v\n", idx, p)
-		if err := p.patch(outfile); err != nil {
-			fmt.Fprintf(os.Stderr, "Applying patches: %v\n", err)
-			os.Exit(1)
-		}
 	}
 }
