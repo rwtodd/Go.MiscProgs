@@ -13,7 +13,7 @@ const (
 	EOF_BYTES = ('E' << 16) + ('O' << 8) + 'F'
 )
 
-// There are 2 kinds of patch, which follow the following
+// There are 3 kinds of patch, which follow the following
 // simple interface:
 type Patcher interface {
 	fmt.Stringer
@@ -37,41 +37,28 @@ func (p *BytePatch) patch(fl io.WriterAt) error {
 	return err
 }
 func (p *BytePatch) String() string {
-	return fmt.Sprintf("Patch (length %d) at location: %08X",
-		len(p.values),
-		p.location)
+	return fmt.Sprintf("Patch (length %d) at location: %X", len(p.values), p.location)
 }
 
-// copyFileContents copies the contents of the file named src to the file named
-// by dst. The file will be created if it does not already exist. If the
-// destination file exists, all it's contents will be replaced by the contents
-// of the source file.
-func copyFileContents(src, dst string) (err error) {
-	in, err := os.Open(src)
-	if err != nil {
-		return
-	}
-	defer in.Close()
-	out, err := os.Create(dst)
-	if err != nil {
-		return
-	}
-	defer func() {
-		cerr := out.Close()
-		if err == nil {
-			err = cerr
-		}
-	}()
-	if _, err = io.Copy(out, in); err != nil {
-		return
-	}
-	err = out.Sync()
-	return
+// An RLEPatch fills a section of bytes with a single value.
+type RLEPatch struct {
+	location int64
+	length   int
+	value    byte
+}
+
+func (p *RLEPatch) patch(fl io.WriterAt) error {
+	buf := bytes.Repeat([]byte{p.value}, p.length)
+	_, err := fl.WriteAt(buf, p.location)
+	return err
+}
+func (p *RLEPatch) String() string {
+	return fmt.Sprintf("RLEPatch (length %d, value %02X) at location: %X", p.length, p.value, p.location)
 }
 
 // readIPS reads an entire patch file, pushing Patchers into
 // a channel.
-func readIPS(ips *bufio.Reader, out chan Patcher) {
+func readIPS(ips *bufio.Reader, out chan Patcher, errs chan error) {
 	var err error
 	read1 := func() int {
 		var v byte
@@ -83,12 +70,19 @@ func readIPS(ips *bufio.Reader, out chan Patcher) {
 	read2 := func() int { return (read1() << 8) + read1() }
 	read3 := func() int { return (read2() << 8) + read1() }
 
+	send := func(p Patcher) {
+		if err == nil {
+			out <- p
+		}
+	}
+
 	defer close(out)
+	defer close(errs)
 
 	header := make([]byte, 5)
 	_, err = io.ReadFull(ips, header)
 	if string(header) != "PATCH" {
-		fmt.Fprintln(os.Stderr, "Not a valid IPS file!")
+		errs <- fmt.Errorf("Not a valid IPS file!")
 		return
 	}
 
@@ -98,24 +92,20 @@ func readIPS(ips *bufio.Reader, out chan Patcher) {
 		plen := read2()
 		switch plen {
 		case 0:
-			plen = read2()
-			val := byte(read1())
-			buf = bytes.Repeat([]byte{val}, plen)
+			send(&RLEPatch{int64(offs), read2(), byte(read1())})
 		default:
 			buf = make([]byte, plen)
 			_, err = io.ReadFull(ips, buf)
+			send(&BytePatch{buf, int64(offs)})
 		}
 		if err != nil {
 			if (offs == EOF_BYTES) && (err == io.EOF) {
 				out <- EOFMarker{}
 			} else {
-				fmt.Fprintf(os.Stderr,
-					"Error reading ips file: %v\n",
-					err)
+				errs <- fmt.Errorf("Error reading ips file: %v\n", err)
 			}
 			return
 		}
-		out <- &BytePatch{buf, int64(offs)}
 	}
 }
 
@@ -126,14 +116,14 @@ func process(ipsf, srcf, tgtf string) error {
 	}
 
 	// open the IPS file and start the reader
-	pchan := make(chan Patcher, 100)
 	infile, err := os.Open(ipsf)
 	if err != nil {
 		return fmt.Errorf("Opening IPS file: %v\n", err)
 	}
 	defer infile.Close()
 	br := bufio.NewReader(infile)
-	go readIPS(br, pchan)
+	pchan, echan := make(chan Patcher, 100), make(chan error, 1)
+	go readIPS(br, pchan, echan)
 
 	// open the target for patching
 	outfile, err := os.OpenFile(tgtf, os.O_WRONLY, 0666)
@@ -152,7 +142,7 @@ func process(ipsf, srcf, tgtf string) error {
 		}
 	}
 
-	return nil
+	return <-echan
 }
 
 func main() {
