@@ -127,7 +127,7 @@ func process(ipsf, srcf, tgtf string) error {
 
 	// open the IPS file and start the reader
 	pchan := make(chan Patcher, 100)
-	infile, err := os.Open(os.Args[1])
+	infile, err := os.Open(ipsf)
 	if err != nil {
 		return fmt.Errorf("Opening IPS file: %v\n", err)
 	}
@@ -136,7 +136,7 @@ func process(ipsf, srcf, tgtf string) error {
 	go readIPS(br, pchan)
 
 	// open the target for patching
-	outfile, err := os.OpenFile(os.Args[3], os.O_WRONLY, 0666)
+	outfile, err := os.OpenFile(tgtf, os.O_WRONLY, 0666)
 	if err != nil {
 		return fmt.Errorf("Opening output file: %v\n", err)
 	}
