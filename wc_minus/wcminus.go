@@ -4,43 +4,36 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sync"
+	"runtime"
 
 	"github.com/rwtodd/apputil/cmdline"
 )
 
 // counts all the bytes in the input buffer which aren't ASCII spaces or tabs.
-func count(buf []byte) int64 {
+func counter(in chan []byte, out chan int64) {
 	var c int64
-	for _, v := range buf {
-		if v != ' ' && v != '\t' {
-			c++
+
+	for buf := range in {
+		for _, v := range buf {
+			if v != ' ' && v != '\t' {
+				c++
+			}
 		}
 	}
-	return c
-}
 
-// summer sums all the integers from the 'in' channel, and
-// then leaves the result int he 'out' channel.
-func summer(in chan int64, out chan int64) {
-	var sum int64
-	for v := range in {
-		sum += v
-	}
-	out <- sum
+	out <- c
 }
 
 func main() {
 	cmdline.GlobArgs()
 
-	// initialization phase... set up the needed channels and WaitGroup,
-	// and start the summer goroutine
-	var wg sync.WaitGroup
 	var err error
+	ncpu := runtime.NumCPU()
 
-	limiter := make(chan struct{}, 8)
-	counts, sum := make(chan int64, 8), make(chan int64)
-	go summer(counts, sum)
+	bufs, sum := make(chan []byte, ncpu), make(chan int64, ncpu)
+	for idx := 0; idx < ncpu; idx++ {
+		go counter(bufs, sum)
+	}
 
 	// calculation phase... read all input files, counting their characters in parallel
 	var fl io.ReadCloser
@@ -50,19 +43,12 @@ func main() {
 			fmt.Fprintf(os.Stderr, "%s: %v\n", fname, err)
 		}
 
-		// keep up to 8 buffers in memory (via 'limiter'), reading the whole file:
 		for err == nil {
 			var n int
-			limiter <- struct{}{}
 			buf := make([]byte, 4096)
 			n, err = fl.Read(buf)
 			if n > 0 {
-				wg.Add(1)
-				go func(b []byte) {
-					counts <- count(b)
-					wg.Done()
-					<-limiter // read the next batch
-				}(buf[:n])
+				bufs <- buf[:n]
 			}
 		}
 		if err != io.EOF {
@@ -71,9 +57,12 @@ func main() {
 		fl.Close()
 	}
 
-	// cleanup phase... wait for all work to be done, then close the
-	// 'counts' channel so the summer will finish
-	wg.Wait()
-	close(counts)
-	fmt.Printf("Total: %d\n", <-sum)
+	// cleanup phase... close the bufs channel and add all the results
+	close(bufs)
+	var answer int64
+	for idx := 0; idx < ncpu; idx++ {
+		answer += <-sum
+	}
+
+	fmt.Printf("Total: %d\n", answer)
 }
