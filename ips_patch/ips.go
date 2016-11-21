@@ -110,11 +110,6 @@ func readIPS(ips *bufio.Reader, out chan Patcher, errs chan error) {
 }
 
 func process(ipsf, srcf, tgtf string) error {
-	// copy the source to the new name
-	if err := copyFileContents(srcf, tgtf); err != nil {
-		return fmt.Errorf("File copy: %v\n", err)
-	}
-
 	// open the IPS file and start the reader
 	infile, err := os.Open(ipsf)
 	if err != nil {
@@ -124,6 +119,11 @@ func process(ipsf, srcf, tgtf string) error {
 	br := bufio.NewReader(infile)
 	pchan, echan := make(chan Patcher, 100), make(chan error, 1)
 	go readIPS(br, pchan, echan)
+
+	// copy the source to the new name
+	if err = copyFileContents(srcf, tgtf); err != nil {
+		return fmt.Errorf("File copy: %v\n", err)
+	}
 
 	// open the target for patching
 	outfile, err := os.OpenFile(tgtf, os.O_WRONLY, 0666)
