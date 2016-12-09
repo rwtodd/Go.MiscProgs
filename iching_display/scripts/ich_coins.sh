@@ -10,5 +10,5 @@
 (( t6 = 6 + (RANDOM % 2) + (RANDOM % 2) + (RANDOM % 2) ))
 
 
-echo $t1$t2$t3$t4$t5$t6
+iching_display $t1$t2$t3$t4$t5$t6
 

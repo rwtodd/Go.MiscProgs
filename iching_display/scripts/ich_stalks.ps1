@@ -1,6 +1,5 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Script to generate an I-Ching casting via the yarrow stalk method.  Suitable for
-# piping into iching_display.exe
+# Script to generate an I-Ching casting via the yarrow stalk method. 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # P R O B A B I L I T I E S
 #
@@ -25,5 +24,5 @@ $t4 = cast
 $t5 = cast
 $t6 = cast
 
-Write-Output $t1$t2$t3$t4$t5$t6
+& iching_display $t1$t2$t3$t4$t5$t6
 

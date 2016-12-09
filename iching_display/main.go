@@ -2,10 +2,8 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
-	"strings"
 )
 
 const (
@@ -13,25 +11,19 @@ const (
 	yin  = "\u2584\u2584\u2584  \u2584\u2584\u2584"
 )
 
-func main() {
-	// STEP ONE: get the input
-	var lines string
-	if len(os.Args) > 1 {
-		lines = os.Args[1]
-	} else {
-		inp := bufio.NewReader(os.Stdin)
-		lines, _ = inp.ReadString('\n')
-	}
-	lines = strings.TrimSpace(lines)
-
-	// STEP TWO: validate the input, give usage on bad input
-	if len(lines) != 6 {
-		fmt.Fprintf(os.Stderr, `Usage: %s [casting]
-  ... where casting is 6 digits (6,7,8,9) for I Ching lines
-  If casting is not given, it is read from stdin. 
+func usage() {
+		fmt.Fprintf(os.Stderr, `Usage: %s casting
+  ... where casting is 6 digits from the set: {6,7,8,9} for I Ching lines
 `, os.Args[0])
 		os.Exit(1)
-	}
+}
+
+func main() {
+	// STEP ONE: get the input
+	lines := os.Args[len(os.Args)-1]
+
+	// STEP TWO: validate the input, give usage on bad input
+	if (len(os.Args) != 2) || (len(lines) != 6) { usage() }
 
 	// STEP THREE: parse the input
 	var h1, h2 int

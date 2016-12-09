@@ -10,11 +10,11 @@ to the program:
  * **ich_stalks.ps1** uses the yarrow stalks method
  * **ich_static.ps1** gives a random hexagram with no moving lines
 
-I also include a bash shell version of **ich_coins**.
+I also include a bash shell version of **ich_coins** as an example.
 
 Usage:
 
-    $ ich_stalks.ps1 | iching_display.exe 
+    $ ich_stalks.ps1 
     Casting for <877987>:
     
     50 Ting -- The Cauldron
