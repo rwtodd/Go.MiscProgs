@@ -1,6 +1,7 @@
-package iching
+package main 
 
-var num2hex = [...]Hexagram{
+// num2hex maps King Wen numbers (shifted to 0-63 range) to hexagrams:
+var wen2hex = [...]Hexagram{
     63 , 0 , 17 , 34 , 23 , 58 , 2 , 16 , 55 , 59 , 7 ,
     56 , 61 , 47 , 4 , 8 , 25 , 38 , 3 , 48 , 41 , 37 ,
     32 , 1 , 57 , 39 , 33 , 30 , 18 , 45 , 28 , 14 , 60 ,
@@ -9,7 +10,18 @@ var num2hex = [...]Hexagram{
     44 , 54 , 27 , 50 , 19 , 51 , 12 , 21 , 42,
 }
 
-var hexnames = [...]string{
+// hex2wen map hexagrams to King Wen numbers.
+var hex2wen = [...]int {
+	2, 24, 7, 19, 15, 36, 46, 11, 16, 51, 40,
+	54, 62, 55, 32, 34, 8, 3, 29, 60, 39, 63,
+	48, 5, 45, 17, 47, 58, 31, 49, 28, 43, 23,
+	27, 4, 41, 52, 22, 18, 26, 35, 21, 64, 38,
+	56, 30, 50, 14, 20, 42, 59, 61, 53, 37, 57,
+	9, 12, 25, 6, 10, 33, 13, 44, 1,
+}
+
+// These are the names of the hexagrams.
+var hexname = [...]string{
 	"K'un -- Earth",
 	"Fu -- Return",
 	"Shih -- The Army",
@@ -76,11 +88,3 @@ var hexnames = [...]string{
 	"Chi'en -- Heaven",
 }
 
-var hexnums = [...]int {
-	2, 24, 7, 19, 15, 36, 46, 11, 16, 51, 40,
-	54, 62, 55, 32, 34, 8, 3, 29, 60, 39, 63,
-	48, 5, 45, 17, 47, 58, 31, 49, 28, 43, 23,
-	27, 4, 41, 52, 22, 18, 26, 35, 21, 64, 38,
-	56, 30, 50, 14, 20, 42, 59, 61, 53, 37, 57,
-	9, 12, 25, 6, 10, 33, 13, 44, 1,
-}

@@ -1,7 +1,6 @@
-# I CHING
+# ich_disp 
 
-This is a Go package for dealing with I Ching trigrams and hexagrams.
-Facilities are provided for dealing with the King Wen sequence,
-decomposing and recomposing hexagrams, and looking up their numbers
-and names.
+This is a program to display *I Ching* castings.  Input is meant to come
+either manually or via a helper script (one is provided in this repo to
+perform the "3 coins" method.  
 
