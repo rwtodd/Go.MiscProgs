@@ -19,8 +19,7 @@ type patch struct {
 	location int64
 }
 
-// readIPS reads an entire patch file, pushing Patchers into
-// a channel.
+// readIPS reads an entire patch file, pushing patches into a channel.
 func readIPS(ips *bufio.Reader, out chan *patch, errs chan error) {
 	var err error
 	read1 := func() int {
@@ -32,11 +31,6 @@ func readIPS(ips *bufio.Reader, out chan *patch, errs chan error) {
 	}
 	read2 := func() int { return (read1() << 8) + read1() }
 	read3 := func() int { return (read2() << 8) + read1() }
-	send := func(p *patch) {
-		if err == nil {
-			out <- p
-		}
-	}
 
 	defer close(out)
 	defer close(errs)
@@ -60,13 +54,15 @@ func readIPS(ips *bufio.Reader, out chan *patch, errs chan error) {
 			buf = make([]byte, plen)
 			_, err = io.ReadFull(ips, buf)
 		}
-		send(&patch{buf, int64(offs)})
-		if err != nil {
-			if (offs == EOF_BYTES) && (err == io.EOF) {
-				out <- nil
-			} else {
-				errs <- fmt.Errorf("Error reading ips file: %v\n", err)
-			}
+
+		switch {
+		case err == nil:
+			out <- &patch{buf, int64(offs)}
+		case (offs == EOF_BYTES) && (err == io.EOF):
+			out <- nil   // send nil as EOF marker
+			return
+		default:
+			errs <- fmt.Errorf("Error reading ips file: %v\n", err)
 			return
 		}
 	}
