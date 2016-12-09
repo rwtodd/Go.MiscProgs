@@ -60,14 +60,15 @@ func process(lines string) {
 
 	for idx := 5; idx >= 0; idx-- {
 		l1, middle, l2 := h1lines[idx], "   ", ""
-		if l1 != l2 {
-			middle = "-->"
-		}
 		if h1 != h2 {
 			l2 = h2lines[idx] 
+			if l1 != l2 {
+				middle = "-->"
+			}
 		}
 		fmt.Printf("  %s %s %s\n", l1, middle, l2)
 	}
+	fmt.Println()
 
 }
 

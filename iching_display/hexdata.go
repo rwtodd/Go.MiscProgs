@@ -1,7 +1,7 @@
 package main 
 
 // num2hex maps King Wen numbers (shifted to 0-63 range) to hexagrams:
-var wen2hex = [...]Hexagram{
+var wen2hex = [...]int {
     63 , 0 , 17 , 34 , 23 , 58 , 2 , 16 , 55 , 59 , 7 ,
     56 , 61 , 47 , 4 , 8 , 25 , 38 , 3 , 48 , 41 , 37 ,
     32 , 1 , 57 , 39 , 33 , 30 , 18 , 45 , 28 , 14 , 60 ,
