@@ -59,9 +59,9 @@ func main() {
 
 	// STEP FOUR:  display the output
 	fmt.Printf("Casting for <%s>:\n\n", lines)
-	fmt.Printf("%d %v\n", hex2wen[h1], hexname[h1])
+	fmt.Println(hexname[h1])
 	if h1 != h2 {
-		fmt.Printf(" --Changing To-->\n%d %v\n", hex2wen[h2], hexname[h2])
+		fmt.Printf(" --Changing To-->\n%s\n", hexname[h2])
 	}
 	fmt.Println()
 
