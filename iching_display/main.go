@@ -6,21 +6,36 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/mattn/go-isatty"
 )
 
 const (
-  yang = "\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u2584"
-  yin  = "\u2584\u2584\u2584  \u2584\u2584\u2584"
+	yang = "\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u2584"
+	yin  = "\u2584\u2584\u2584  \u2584\u2584\u2584"
 )
 
-func process(lines string) {
-	fmt.Printf("Casting for <%s>:\n\n", lines)
+func main() {
+	// STEP ONE: get the input
+	var lines string
+	if len(os.Args) > 1 {
+		lines = os.Args[1]
+	} else {
+		inp := bufio.NewReader(os.Stdin)
+		lines, _ = inp.ReadString('\n')
+	}
+	lines = strings.TrimSpace(lines)
 
-        // STEP ONE:  parse out the lines from the casting:
+	// STEP TWO: validate the input, give usage on bad input
+	if len(lines) != 6 {
+		fmt.Fprintf(os.Stderr, `Usage: %s [casting]
+  ... where casting is 6 digits (6,7,8,9) for I Ching lines
+  If casting is not given, it is read from stdin. 
+`, os.Args[0])
+		os.Exit(1)
+	}
+
+	// STEP THREE: parse the input
 	var h1, h2 int
-        var h1lines, h2lines [6]string
+	var h1lines, h2lines [6]string
 
 	for idx := 5; idx >= 0; idx-- {
 		h1 = h1 << 1
@@ -50,8 +65,8 @@ func process(lines string) {
 		}
 	}
 
-
-        // STEP TWO:  display the lines...
+	// STEP FOUR:  display the output
+	fmt.Printf("Casting for <%s>:\n\n", lines)
 	fmt.Printf("%d %v\n", hex2wen[h1], hexname[h1])
 	if h1 != h2 {
 		fmt.Printf(" --Changing To-->\n%d %v\n", hex2wen[h2], hexname[h2])
@@ -61,7 +76,7 @@ func process(lines string) {
 	for idx := 5; idx >= 0; idx-- {
 		l1, middle, l2 := h1lines[idx], "   ", ""
 		if h1 != h2 {
-			l2 = h2lines[idx] 
+			l2 = h2lines[idx]
 			if l1 != l2 {
 				middle = "-->"
 			}
@@ -69,27 +84,4 @@ func process(lines string) {
 		fmt.Printf("  %s %s %s\n", l1, middle, l2)
 	}
 	fmt.Println()
-
-}
-
-func main() {
-	inp := bufio.NewReader(os.Stdin)
-	onTerm := isatty.IsTerminal(os.Stdin.Fd())
-
-	for {
-		if onTerm {
-			fmt.Print("Please input a casting [6-9]{6}: ")
-		}
-		lines, _ := inp.ReadString('\n')
-		lines = strings.TrimSpace(lines)
-
-		if len(lines) != 6 {
-			if len(lines) > 0 {
-				fmt.Fprintf(os.Stderr, "Bad input <%s>!\n", lines)
-			}
-			return
-		}
-
-		process(lines)
-	}
 }
