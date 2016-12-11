@@ -2,6 +2,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 )
@@ -12,18 +13,50 @@ const (
 )
 
 func usage() {
-		fmt.Fprintf(os.Stderr, `Usage: %s casting
+	fmt.Fprintf(os.Stderr, `Usage: %s [opts|casting]
   ... where casting is 6 digits from the set: {6,7,8,9} for I Ching lines
+  ... and options are below:
 `, os.Args[0])
-		os.Exit(1)
+	flag.PrintDefaults()
+	os.Exit(1)
 }
+
+type selector struct {
+	action func()
+}
+
+func (s *selector) String() string {
+	return "selector"
+}
+
+func (s *selector) Set(_ string) error {
+	s.action()
+	return nil
+}
+
+func (s *selector) IsBoolFlag() bool { return true }
 
 func main() {
 	// STEP ONE: get the input
-	lines := os.Args[len(os.Args)-1]
+	whichCasting := coinsMtd // cast coins by default.
+
+	flag.Usage = usage
+	flag.Var(&selector{func() { whichCasting = coinsMtd }}, "coins", "cast via 3-Coins method")
+	flag.Var(&selector{func() { whichCasting = stalksMtd }}, "stalks", "cast via yarrow stalks method")
+	flag.Var(&selector{func() { whichCasting = randomMtd }}, "random", "cast a random static hexagram")
+	flag.Parse()
+
+	var lines string
+	if len(flag.Args()) > 0 {
+		lines = flag.Arg(0)
+	} else {
+		lines = whichCasting()
+	}
 
 	// STEP TWO: validate the input, give usage on bad input
-	if (len(os.Args) != 2) || (len(lines) != 6) { usage() }
+	if (len(flag.Args()) > 1) || (len(lines) != 6) {
+		usage()
+	}
 
 	// STEP THREE: parse the input
 	var h1, h2 int
