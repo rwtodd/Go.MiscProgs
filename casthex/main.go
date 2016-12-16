@@ -2,7 +2,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 )
@@ -16,45 +15,34 @@ func usage() {
 	fmt.Fprintf(os.Stderr, `Usage: %s [opts|casting]
   ... where casting is 6 digits from the set: {6,7,8,9} for I Ching lines
   ... and options are below:
+       -coins  use the 3-Coins method
+       -stalks use the yarrow stalks method
+       -random generate a random hexagram with no moving lines
 `, os.Args[0])
-	flag.PrintDefaults()
 	os.Exit(1)
 }
 
-type selector struct {
-	action func()
-}
-
-func (s *selector) String() string {
-	return "selector"
-}
-
-func (s *selector) Set(_ string) error {
-	s.action()
-	return nil
-}
-
-func (s *selector) IsBoolFlag() bool { return true }
-
 func main() {
 	// STEP ONE: get the input
-	whichCasting := coinsMtd // cast coins by default.
-
-	flag.Usage = usage
-	flag.Var(&selector{func() { whichCasting = coinsMtd }}, "coins", "cast via 3-Coins method")
-	flag.Var(&selector{func() { whichCasting = stalksMtd }}, "stalks", "cast via yarrow stalks method")
-	flag.Var(&selector{func() { whichCasting = randomMtd }}, "random", "cast a random static hexagram")
-	flag.Parse()
-
 	var lines string
-	if len(flag.Args()) > 0 {
-		lines = flag.Arg(0)
+
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "-coins":
+			lines = coinsMtd()
+		case "-stalks":
+			lines = stalksMtd()
+		case "-random":
+			lines = randomMtd()
+		default:
+			lines = os.Args[1]
+		}
 	} else {
-		lines = whichCasting()
+		lines = coinsMtd() // default to coins
 	}
 
 	// STEP TWO: validate the input, give usage on bad input
-	if (len(flag.Args()) > 1) || (len(lines) != 6) {
+	if (len(os.Args) > 2) || (len(lines) != 6) {
 		usage()
 	}
 
