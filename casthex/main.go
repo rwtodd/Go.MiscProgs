@@ -6,10 +6,10 @@ import (
 	"os"
 )
 
-const (
-	yang = "\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u2584"
-	yin  = "\u2584\u2584\u2584  \u2584\u2584\u2584"
-)
+var YANGYIN = [...]string{
+	"\u2584\u2584\u2584  \u2584\u2584\u2584",
+	"\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u2584",
+}
 
 func usage() {
 	fmt.Fprintf(os.Stderr, `Usage: %s [opts|casting]
@@ -20,6 +20,24 @@ func usage() {
        -random generate a random hexagram with no moving lines
 `, os.Args[0])
 	os.Exit(1)
+}
+
+func validate(input string) (bool, error) {
+	changed := false
+	if len(input) != 6 {
+		return false, fmt.Errorf("Wrong-sized input <%s>!", input)
+	}
+
+	for _, ch := range input {
+		switch ch {
+		case '6', '9':
+			changed = true
+		case '7', '8': // do nothing
+		default:
+			return false, fmt.Errorf("Bad character <%c> in input!", ch)
+		}
+	}
+	return changed, nil
 }
 
 func main() {
@@ -42,59 +60,42 @@ func main() {
 	}
 
 	// STEP TWO: validate the input, give usage on bad input
-	if (len(os.Args) > 2) || (len(lines) != 6) {
+	changed, err := validate(lines)
+	if (len(os.Args) > 2) || (err != nil) {
 		usage()
 	}
 
-	// STEP THREE: parse the input
+	// STEP THREE: parse the input, displaying the hexagram
+	fmt.Printf("Casting for <%s>:\n\n", lines)
 	var h1, h2 int
-	var h1lines, h2lines [6]string
+	var h1line, h2line int
 
 	for idx := 5; idx >= 0; idx-- {
-		h1 = h1 << 1
-		h2 = h2 << 1
+		h1line = int(lines[idx]) & 1
+		h2line = h1line
+		if lines[idx] == '6' || lines[idx] == '9' {
+			h2line = 1 - h2line
+		}
+		h1 = (h1 << 1) | h1line
+		h2 = (h2 << 1) | h2line
 
-		switch lines[idx] {
-		case '6':
-			h1lines[idx] = yin
-			h2lines[idx] = yang
-			h2 |= 1
-		case '7':
-			h1lines[idx] = yang
-			h2lines[idx] = yang
-			h1 |= 1
-			h2 |= 1
-		case '8':
-			h1lines[idx] = yin
-			h2lines[idx] = yin
-		case '9':
-			h1lines[idx] = yang
-			h2lines[idx] = yin
-			h1 |= 1
-		default:
-			fmt.Fprintf(os.Stderr, "Bad input <%c>\n", lines[idx])
-			h1lines[idx] = yin
-			h2lines[idx] = yin
+		if changed {
+			middle := "   "
+			if h1line != h2line {
+				middle = "-->"
+			}
+			fmt.Printf("  %s %s %s\n", YANGYIN[h1line], middle, YANGYIN[h2line])
+		} else {
+			fmt.Printf("  %s\n", YANGYIN[h1line])
 		}
 	}
+	fmt.Println()
 
-	// STEP FOUR:  display the output
-	fmt.Printf("Casting for <%s>:\n\n", lines)
+	// STEP FOUR:  display the hexagram names 
 	fmt.Println(hexname[h1])
-	if h1 != h2 {
+	if changed {
 		fmt.Printf(" --Changing To-->\n%s\n", hexname[h2])
 	}
 	fmt.Println()
 
-	for idx := 5; idx >= 0; idx-- {
-		l1, middle, l2 := h1lines[idx], "   ", ""
-		if h1 != h2 {
-			l2 = h2lines[idx]
-			if l1 != l2 {
-				middle = "-->"
-			}
-		}
-		fmt.Printf("  %s %s %s\n", l1, middle, l2)
-	}
-	fmt.Println()
 }
