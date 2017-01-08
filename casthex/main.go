@@ -47,16 +47,16 @@ func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "-coins":
-			lines = coinsMtd()
+			lines = casting(coinsMtd)
 		case "-stalks":
-			lines = stalksMtd()
+			lines = casting(stalksMtd)
 		case "-random":
-			lines = randomMtd()
+			lines = casting(randomMtd)
 		default:
 			lines = os.Args[1]
 		}
 	} else {
-		lines = coinsMtd() // default to coins
+		lines = casting(coinsMtd) // default to coins
 	}
 
 	// STEP TWO: validate the input, give usage on bad input
