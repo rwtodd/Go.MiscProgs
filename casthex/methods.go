@@ -9,11 +9,11 @@ import (
 
 // casting calls the given method (e.g., coinsMtd) six times
 // and builds a string of the results.
-func casting(proc func()byte) string {
+func casting(proc func() byte) string {
 	var results [6]byte
-        for idx := range results {
-              results[idx] = proc()
-        }
+	for idx := range results {
+		results[idx] = proc()
+	}
 	return string(results[:])
 }
 
@@ -21,7 +21,7 @@ func casting(proc func()byte) string {
 // method.  The result is a string of characters from the set
 // { 6,7,8,9 }.
 func coinsMtd() byte {
-     return '6' + byte(rand.Int31n(2)+rand.Int31n(2)+rand.Int31n(2))
+	return '6' + byte(rand.Int31n(2)+rand.Int31n(2)+rand.Int31n(2))
 }
 
 // stalksMtd calculates an i-ching reading via the yarrow stalks method.
