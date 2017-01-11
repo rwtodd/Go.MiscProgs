@@ -61,22 +61,19 @@ func main() {
 	var output = make([]string, 0, 6)
 
 	for idx := 5; idx >= 0; idx-- {
+		h1, h2 = (h1 << 1), (h2 << 1)
 		switch lines[idx] {
 		case '6':
-			h1 = (h1 << 1)
-			h2 = (h2 << 1) | 1
+			h2 |= 1
 			output = append(output, "  --   --    -->    -------")
 		case '7':
-			h1 = (h1 << 1) | 1
-			h2 = (h2 << 1) | 1
+			h1 |= 1
+			h2 |= 1
 			output = append(output, "  -------           -------")
 		case '8':
-			h1 = (h1 << 1)
-			h2 = (h2 << 1)
 			output = append(output, "  --   --           --   --")
 		case '9':
-			h1 = (h1 << 1) | 1
-			h2 = (h2 << 1)
+			h1 |= 1
 			output = append(output, "  -------    -->    --   --")
 		}
 	}
