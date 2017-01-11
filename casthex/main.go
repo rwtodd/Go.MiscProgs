@@ -65,22 +65,22 @@ func main() {
 		switch lines[idx] {
 		case '6':
 			h2 |= 1
-			output = append(output, "  --   --    -->    -------")
+			output = append(output, "  ▄▄▄   ▄▄▄   -->   ▄▄▄▄▄▄▄▄▄")
 		case '7':
 			h1 |= 1
 			h2 |= 1
-			output = append(output, "  -------           -------")
+			output = append(output, "  ▄▄▄▄▄▄▄▄▄         ▄▄▄▄▄▄▄▄▄")
 		case '8':
-			output = append(output, "  --   --           --   --")
+			output = append(output, "  ▄▄▄   ▄▄▄         ▄▄▄   ▄▄▄")
 		case '9':
 			h1 |= 1
-			output = append(output, "  -------    -->    --   --")
+			output = append(output, "  ▄▄▄▄▄▄▄▄▄   -->   ▄▄▄   ▄▄▄")
 		}
 	}
 	var changed = h1 != h2
 	for _, l := range output {
 		if !changed {
-			l = l[:9]
+			l = string([]rune(l)[:11]) // get the first 11 runes
 		}
 		fmt.Println(l)
 	}
