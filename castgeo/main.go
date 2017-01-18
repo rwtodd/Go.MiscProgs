@@ -6,98 +6,71 @@ import (
 	"time"
 )
 
-var LINES = [2]string{"*   *", "  *  "}
+// a geomantic figure... as 4 bytes
+type figure [4]byte
 
-// randFig generates a random geomantic figure.
-func randFig() []string {
-	var fig = make([]string, 4)
-	for idx := range fig {
-		fig[idx] = LINES[rand.Int31n(2)]
-	}
-	return fig
-}
+// generate the moms, then generate the daughters by transposing the moms
+func makeMomsDaughters() []figure {
+	var line [8]figure
 
-// transposeFigs takes a slice of figures and returns
-// their transpose.
-func transposeFigs(in [][]string) [][]string {
-	var ans = make([][]string, len(in[0]))
-	for idx := range ans {
-		ans[idx] = make([]string, len(in))
-		for idy := range ans[idx] {
-			ans[idx][idy] = in[idy][idx]
+	// moms are random
+	for i := 7; i > 3; i-- {
+		for j := range line[i] {
+			line[i][j] = byte(rand.Int31n(2))
 		}
 	}
-	return ans
+
+	// daughters are transposed moms
+	for i := 0; i < 4; i++ {
+		for j := 0; j < 4; j++ {
+			line[i][j] = line[7-j][3-i]
+		}
+	}
+
+	return line[:]
 }
 
 // combineFigs takes adjaces figures in a slice, and combines
 // them.  The resulting slice is half the length of the input.
-func combineFigs(in [][]string) [][]string {
-	var ans = make([][]string, len(in)/2)
+func combineFigs(in []figure) []figure {
+	var ans = make([]figure, len(in)/2)
 	for idx := range ans {
-		a, b := in[idx*2], in[idx*2+1]
-		ans[idx] = make([]string, 4)
-		for i, aline := range a {
-			if b[i][0] == aline[0] {
-				ans[idx][i] = LINES[0]
-			} else {
-				ans[idx][i] = LINES[1]
-			}
+		for fig := range ans[idx] {
+			ans[idx][fig] = in[idx*2][fig] ^ in[idx*2+1][fig]
 		}
 	}
 	return ans
 }
 
-// spaces is a helper function to generate a given amount of spaces
-func spaces(amt int) string {
-	ans := make([]byte, amt)
-	for idx := range ans {
-		ans[idx] = ' '
-	}
-	return string(ans)
-}
+var LINES = [2]string{"*   *", "  *  "}
+var SPACES = "                                        "
 
 // display outputs a row of figures, with 'ispace' initial space,
 // and 'mspace' spaces between each figure.
-func display(ispace int, mspace int, figs [][]string) {
-	isp, msp := spaces(ispace), spaces(mspace)
-	strs := transposeFigs(figs)
-	for _, l := range strs {
+func display(ispace int, mspace int, figs []figure) {
+	isp, msp := SPACES[:ispace], SPACES[:mspace]
+	for y := range figs[0] {
 		fmt.Print(isp)
-		for _, s := range l {
-			fmt.Print(s, msp)
+		for x := range figs {
+			fmt.Print(LINES[int(figs[x][y])], msp)
 		}
 		fmt.Println()
 	}
+	fmt.Println()
 }
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	// generate the top line (moms and daughters)
-	line1 := make([][]string, 8)
-	for idx := 0; idx < 4; idx++ {
-		line1[idx] = randFig()
-	}
-	copy(line1[4:], transposeFigs(line1[:4]))
-
-	// reverse the figures
-	for idx := 3; idx >= 0; idx-- {
-		opp := 7 - idx
-		line1[idx], line1[opp] = line1[opp], line1[idx]
-	}
-
-	// generate the remaining lines via combination
+	// generate the lines
+	line1 := makeMomsDaughters()
 	nieces := combineFigs(line1)
 	witnesses := combineFigs(nieces)
 	judge := combineFigs(witnesses)
 
 	// display the shield
 	display(2, 5, line1)
-	fmt.Println()
 	display(7, 15, nieces)
-	fmt.Println()
 	display(17, 35, witnesses)
-	fmt.Println()
 	display(37, 0, judge)
 }
