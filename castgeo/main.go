@@ -13,17 +13,10 @@ type figure [4]byte
 func makeMomsDaughters() []figure {
 	var line [8]figure
 
-	// moms are random
 	for i := 7; i > 3; i-- {
-		for j := range line[i] {
-			line[i][j] = byte(rand.Int31n(2))
-		}
-	}
-
-	// daughters are transposed moms
-	for i := 0; i < 4; i++ {
 		for j := 0; j < 4; j++ {
-			line[i][j] = line[7-j][3-i]
+			line[i][j] = byte(rand.Int31n(2)) // mom
+			line[3-j][7-i] = line[i][j]       // daughter
 		}
 	}
 
@@ -43,7 +36,7 @@ func combineFigs(in []figure) []figure {
 }
 
 var LINES = [2]string{"*   *", "  *  "}
-var SPACES = "                                        "
+const SPACES string = "                                        "
 
 // display outputs a row of figures, with 'ispace' initial space,
 // and 'mspace' spaces between each figure.
