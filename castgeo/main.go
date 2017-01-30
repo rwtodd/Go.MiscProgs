@@ -43,9 +43,9 @@ const SPACES string = "                                        "
 func display(ispace int, mspace int, figs []figure) {
 	isp, msp := SPACES[:ispace], SPACES[:mspace]
 	for y := range figs[0] {
-		fmt.Print(isp)
-		for x := range figs {
-			fmt.Print(LINES[int(figs[x][y])], msp)
+		fmt.Print(isp, LINES[int(figs[0][y])])
+		for x := 1 ; x < len(figs) ; x++ {
+			fmt.Print(msp,LINES[int(figs[x][y])])
 		}
 		fmt.Println()
 	}
