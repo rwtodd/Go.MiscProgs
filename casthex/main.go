@@ -17,19 +17,6 @@ func usage() {
 	os.Exit(1)
 }
 
-func validate(input string) error {
-	if len(input) != 6 {
-		return fmt.Errorf("Wrong-sized input <%s>!", input)
-	}
-
-	for _, ch := range input {
-		if ch < '6' || ch > '9' {
-			return fmt.Errorf("Bad character <%c> in input!", ch)
-		}
-	}
-	return nil
-}
-
 func main() {
 	// STEP ONE: get the input
 	var lines string
@@ -49,13 +36,9 @@ func main() {
 		lines = casting(coinsMtd) // default to coins
 	}
 
-	// STEP TWO: validate the input, give usage on bad input
-	err := validate(lines)
-	if (len(os.Args) > 2) || (err != nil) {
-		usage()
-	}
+	if len(lines) != 6 { usage() }
 
-	// STEP THREE: parse the input, displaying the hexagram
+	// STEP TWO: parse the input, displaying the hexagram
 	fmt.Printf("Casting for <%s>:\n\n", lines)
 	var h1, h2 int
 	var output = make([]string, 0, 6)
@@ -75,6 +58,8 @@ func main() {
 		case '9':
 			h1 |= 1
 			output = append(output, "  ▄▄▄▄▄▄▄▄▄   -->   ▄▄▄   ▄▄▄")
+		default:
+			usage()
 		}
 	}
 	var changed = h1 != h2
@@ -86,7 +71,7 @@ func main() {
 	}
 	fmt.Println()
 
-	// STEP FOUR:  display the hexagram names
+	// STEP THREE:  display the hexagram names
 	fmt.Println(hexname[h1])
 	if changed {
 		fmt.Printf(" --Changing To-->\n%s\n", hexname[h2])
