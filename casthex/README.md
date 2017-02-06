@@ -12,17 +12,16 @@ set '6', '7', '8', and '9' for each line.
 
 Usage:
 
-    $ ./casthex
-    Casting for <877987>:
+    bash-3.2$ ./casthex
+    Casting for <879878>:
     
-    50 Ting -- The Cauldron
-     --Changing To-->
-    18 Ku -- Degeneration
+      ---   ---        ---   ---
+      ---------        ---------
+      ---   ---        ---   ---
+      ---------   ->   ---   ---
+      ---------        ---------
+      ---   ---        ---   ---
     
-      ▄▄▄▄▄▄▄▄     ▄▄▄▄▄▄▄▄
-      ▄▄▄  ▄▄▄     ▄▄▄  ▄▄▄
-      ▄▄▄▄▄▄▄▄ --> ▄▄▄  ▄▄▄
-      ▄▄▄▄▄▄▄▄     ▄▄▄▄▄▄▄▄
-      ▄▄▄▄▄▄▄▄     ▄▄▄▄▄▄▄▄
-      ▄▄▄  ▄▄▄     ▄▄▄  ▄▄▄
-
+    48. Ching -- The Well
+     -- Changing To ->
+    29. K'an -- Mastering Pitfalls
