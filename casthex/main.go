@@ -36,7 +36,9 @@ func main() {
 		lines = casting(coinsMtd) // default to coins
 	}
 
-	if len(lines) != 6 { usage() }
+	if len(lines) != 6 {
+		usage()
+	}
 
 	// STEP TWO: parse the input, displaying the hexagram
 	fmt.Printf("Casting for <%s>:\n\n", lines)
@@ -48,16 +50,16 @@ func main() {
 		switch lines[idx] {
 		case '6':
 			h2 |= 1
-			output = append(output, "  ▄▄▄   ▄▄▄   -->   ▄▄▄▄▄▄▄▄▄")
+			output = append(output, "  ---   ---   ->   ---------")
 		case '7':
 			h1 |= 1
 			h2 |= 1
-			output = append(output, "  ▄▄▄▄▄▄▄▄▄         ▄▄▄▄▄▄▄▄▄")
+			output = append(output, "  ---------        ---------")
 		case '8':
-			output = append(output, "  ▄▄▄   ▄▄▄         ▄▄▄   ▄▄▄")
+			output = append(output, "  ---   ---        ---   ---")
 		case '9':
 			h1 |= 1
-			output = append(output, "  ▄▄▄▄▄▄▄▄▄   -->   ▄▄▄   ▄▄▄")
+			output = append(output, "  ---------   ->   ---   ---")
 		default:
 			usage()
 		}
@@ -65,7 +67,7 @@ func main() {
 	var changed = h1 != h2
 	for _, l := range output {
 		if !changed {
-			l = string([]rune(l)[:11]) // get the first 11 runes
+			l = l[:11] // get the first 11 bytes
 		}
 		fmt.Println(l)
 	}
@@ -74,7 +76,7 @@ func main() {
 	// STEP THREE:  display the hexagram names
 	fmt.Println(hexname[h1])
 	if changed {
-		fmt.Printf(" --Changing To-->\n%s\n", hexname[h2])
+		fmt.Printf(" -- Changing To ->\n%s\n", hexname[h2])
 	}
 	fmt.Println()
 }
