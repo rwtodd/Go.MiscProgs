@@ -2,42 +2,29 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
 
-func usage() {
-	fmt.Fprintf(os.Stderr, `Usage: %s [opts|casting]
-  ... where casting is 6 digits from the set: {6,7,8,9} for I Ching lines
-  ... and options are below:
-       -coins  use the 3-Coins method
-       -stalks use the yarrow stalks method
-       -static generate a random hexagram with no moving lines
-`, os.Args[0])
-	os.Exit(1)
-}
-
-func main() {
-	// STEP ONE: get the input
+func doCasting(input string) {
+	// STEP ONE: determine the command type
 	var lines string
-
-	if len(os.Args) > 1 {
-		switch os.Args[1] {
-		case "-coins":
-			lines = casting(coinsMtd)
-		case "-stalks":
-			lines = casting(stalksMtd)
-		case "-static":
-			lines = casting(randomMtd)
-		default:
-			lines = os.Args[1]
-		}
-	} else {
-		lines = casting(coinsMtd) // default to coins
+	switch input {
+	case "coins":
+		lines = casting(coinsMtd)
+	case "stalks":
+		lines = casting(stalksMtd)
+	case "static":
+		lines = casting(randomMtd)
+	default:
+		lines = input
 	}
 
 	if len(lines) != 6 {
-		usage()
+		fmt.Fprintf(os.Stderr, "Bad input <%v>\n", lines)
+		os.Exit(1)
 	}
 
 	// STEP TWO: parse the input, displaying the hexagram
@@ -50,7 +37,7 @@ func main() {
 		switch lines[idx] {
 		case '6':
 			h2 |= 1
-			output = append(output, "  ---   ---   ->   ---------")
+			output = append(output, "  ---   ---   =>   ---------")
 		case '7':
 			h1 |= 1
 			h2 |= 1
@@ -59,11 +46,13 @@ func main() {
 			output = append(output, "  ---   ---        ---   ---")
 		case '9':
 			h1 |= 1
-			output = append(output, "  ---------   ->   ---   ---")
+			output = append(output, "  ---------   =>   ---   ---")
 		default:
-			usage()
+			fmt.Fprintf(os.Stderr, "Bad input <%v>\n", lines[idx])
+			os.Exit(1)
 		}
 	}
+
 	var changed = h1 != h2
 	for _, l := range output {
 		if !changed {
@@ -76,7 +65,21 @@ func main() {
 	// STEP THREE:  display the hexagram names
 	fmt.Println(hexname[h1])
 	if changed {
-		fmt.Printf(" -- Changing To ->\n%s\n", hexname[h2])
+		fmt.Printf(" == Changing To =>\n%s\n", hexname[h2])
 	}
-	fmt.Println()
+	fmt.Println("\n")
+}
+
+func main() {
+	if len(os.Args) > 1 {
+		for _, casting := range os.Args[1:] {
+			doCasting(casting)
+		}
+	} else {
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			doCasting(strings.TrimSpace(scanner.Text()))
+		}
+	}
+
 }
